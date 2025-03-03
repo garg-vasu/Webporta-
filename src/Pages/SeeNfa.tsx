@@ -1,49 +1,50 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { ApprovalData, useRequests } from "@/Providers/RequestsContext";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-const BASE_URL = "https://running-corrine-studenttt702-a4e108db.koyeb.app"; // Replace with actual API URL
-export default function SeeNfa() {
-  const { noteid } = useParams<{ projectId: string }>();
+import { useNavigate, useParams } from "react-router-dom";
+import { useRequests } from "@/Providers/RequestsContext"; // or your context location
 
+const BASE_URL = "https://running-corrine-studenttt702-a4e108db.koyeb.app"; 
+
+export default function SeeNfa() {
+  const { noteid } = useParams<{ noteid: string }>(); 
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || "";
   const [userId, setUserId] = useState(0);
   const [pageLoading, setPageLoading] = useState(false);
-
   const [comment, setComment] = useState("");
-  const { requests, loading } = useRequests(); // Get data from context
-  const nfa = requests.find((request) => request.id === Number(noteid));
 
-  const formatDate = (date) => {
+  // From your context (or fetch individually if you prefer)
+  const { requests, loading } = useRequests(); 
+  const nfa = requests.find((r) => r.id === Number(noteid));
+
+  // Fetch the current user’s ID
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/users/me`, {
+          headers: { Authorization: token },
+        });
+        if (response.data?.id) {
+          setUserId(response.data.id);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUserDetails();
+  }, [token]);
+
+  // Example method to format date
+  const formatDate = (date?: string) => {
     if (!date) return "N/A";
     return new Date(date).toLocaleDateString("en-US", {
       day: "numeric",
-      month: "short", // 3-letter month (e.g., Mar, Aug)
+      month: "short",
     });
   };
-  const fetchUserDetails = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/users/me`, {
-        headers: { Authorization: token },
-      });
-      console.log("userid from api");
-      console.log(response.data.id);
-      if (response.data.id) {
-        setUserId(response.data.id);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-    }
-  };
-
-  useEffect(() => {
-    fetchUserDetails();
-  }, []);
 
   let userRole = "";
   if (nfa?.supervisor_id === userId) {
@@ -72,12 +73,9 @@ export default function SeeNfa() {
         headers: { Authorization: token },
         responseType: "blob",
       });
-
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-
-      window.open(url, "_blank"); // Opens the PDF in a new tab
-
+      window.open(url, "_blank");
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Open PDF error:", error);
@@ -85,37 +83,42 @@ export default function SeeNfa() {
     }
   };
 
-  const handleAction = async (approved) => {
-    setTimeout(async () => {
-      setPageLoading(true);
-      try {
-        const payload = {
-          request_id: noteid,
-          approved,
-          comment,
-        };
-        if (userRole === "RECOMMENDOR") {
-          await axios.post(`${BASE_URL}/requests/supervisor-review`, payload, {
-            headers: { Authorization: token },
-          });
-        } else {
-          await axios.post(`${BASE_URL}/requests/approve`, payload, {
-            headers: { Authorization: token },
-          });
-        }
-        alert("Action completed");
-        setComment("");
-        navigate("Dashboard");
-      } catch (err) {
-        console.error("Approval error:", err);
-        alert("Action failed");
-      } finally {
-        setPageLoading(false);
+  const handleAction = async (approved: boolean) => {
+    setPageLoading(true);
+    try {
+      const payload = {
+        request_id: noteid,
+        approved,
+        comment,
+      };
+      if (userRole === "RECOMMENDOR") {
+        await axios.post(`${BASE_URL}/requests/supervisor-review`, payload, {
+          headers: { Authorization: token },
+        });
+      } else {
+        await axios.post(`${BASE_URL}/requests/approve`, payload, {
+          headers: { Authorization: token },
+        });
       }
-    }, 100);
+      alert("Action completed");
+      setComment("");
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Approval error:", err);
+      alert("Action failed");
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
+  // Click “Edit NFA”
+  const handleEditRequest = () => {
+    // Navigate to edit mode
+    navigate(`/editnfa/${noteid}`);
   };
 
   const handleReinitiate = () => {
+    // e.g., same approach:
     navigate(`/editnfa/${noteid}`);
   };
 
@@ -128,37 +131,38 @@ export default function SeeNfa() {
       alert("NFA withdrawn successfully");
       navigate("/dashboard");
     } catch (error) {
+      console.error("Withdraw error:", error);
       alert("Withdrawal failed");
     } finally {
       setPageLoading(false);
     }
   };
 
-  const handleEditRequest = () => {
-    navigate(`/editnfa/${noteid}`);
-  };
+  if (!nfa) {
+    return <div className="text-red-500">NFA not found.</div>;
+  }
 
   return (
     <div className="pb-8 mb-4">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">NFA Detail</h2>
       <Card className="w-full mb-4">
         <CardHeader>
-          <CardTitle>Basic OverView</CardTitle>
+          <CardTitle>Basic Overview</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             {[
-              { label: "NFA No.", value: nfa?.id },
-              { label: "Initiator", value: nfa?.initiator_name },
-              { label: "Subject", value: nfa?.subject },
-              { label: "Description", value: nfa?.description },
-              { label: "Area", value: nfa?.area },
-              { label: "Project", value: nfa?.project },
-              { label: "Tower", value: nfa?.tower },
-              { label: "Department", value: nfa?.department },
-              { label: "Priority", value: nfa?.priority },
-              { label: "References", value: nfa?.references },
-              { label: "Status", value: nfa?.status },
+              { label: "NFA No.", value: nfa.id },
+              { label: "Initiator", value: nfa.initiator_name },
+              { label: "Subject", value: nfa.subject },
+              { label: "Description", value: nfa.description },
+              { label: "Area", value: nfa.area },
+              { label: "Project", value: nfa.project },
+              { label: "Tower", value: nfa.tower },
+              { label: "Department", value: nfa.department },
+              { label: "Priority", value: nfa.priority },
+              { label: "References", value: nfa.references },
+              { label: "Status", value: nfa.status },
             ].map(({ label, value }, idx) => (
               <div key={idx} className="flex justify-between border-b pb-2">
                 <span className="font-medium">{label}:</span>
@@ -176,8 +180,8 @@ export default function SeeNfa() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {nfa?.approval_hierarchy?.length ? (
-              nfa.approval_hierarchy.map((act, idx) => (
+            {nfa.approval_hierarchy?.length ? (
+              nfa.approval_hierarchy.map((act: any, idx: number) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 10 }}
@@ -185,9 +189,8 @@ export default function SeeNfa() {
                   transition={{ duration: 0.3, delay: idx * 0.1 }}
                   className="border border-gray-200 rounded-xl p-3 shadow-sm bg-white flex justify-between items-center"
                 >
-                  {/* Left Section - Name & Role */}
                   <div>
-                    <p className="text-lg font-semibold text-gray-800 capitalize">
+                    <p className="text-lg font-semibold capitalize">
                       {act.name || "N/A"}
                     </p>
                     <p className="text-sm text-gray-500">
@@ -206,7 +209,6 @@ export default function SeeNfa() {
                     )}
                   </div>
 
-                  {/* Right Section - Status */}
                   <div className="text-right">
                     <p className="text-sm text-gray-600">Status:</p>
                     <p
@@ -233,13 +235,13 @@ export default function SeeNfa() {
       </Card>
 
       {/* Files */}
-      {nfa?.files && nfa?.files?.length > 0 && (
-        <Card>
+      {nfa.files && nfa.files.length > 0 && (
+        <Card className="mt-4">
           <CardHeader>
             <CardTitle>Files</CardTitle>
           </CardHeader>
           <CardContent>
-            {nfa?.files.map((file, idx) => (
+            {nfa.files.map((file: any, idx: number) => (
               <a
                 key={idx}
                 href={
@@ -258,41 +260,43 @@ export default function SeeNfa() {
         </Card>
       )}
 
-      {/* action Button  */}
-      <div className="mt-4 flex justify-end gap-4 items-center">
-        {nfa?.status.toUpperCase().includes("APPROVED") && (
-          <Button onClick={handleOpenPDF}>Download Pdf</Button>
-        )}
-        {nfa?.status === "REJECTED" && userId === nfa?.initiator_id && (
-          <Button onClick={handleReinitiate}>Re-initiate Request</Button>
-        )}
-        {nfa?.status === "NEW" && userId === nfa?.initiator_id && (
-          <div className="flex items-center justify-between gap-2 ">
-            <Button onClick={handleEditRequest}>Edit NFA</Button>
-            <Button onClick={handleWithdraw}>Withdraw NFA</Button>
-          </div>
+      {/* Action Buttons */}
+      <div className="mt-4 flex flex-wrap gap-4 items-center justify-end">
+        {nfa.status?.toUpperCase().includes("APPROVED") && (
+          <Button onClick={handleOpenPDF}>Download PDF</Button>
         )}
 
-        {canAct ? (
+        {/* If REJECTED, user can "Re-initiate" - goes to edit screen */}
+        {nfa.status === "REJECTED" && userId === nfa.initiator_id && (
+          <Button onClick={handleReinitiate}>Re-initiate Request</Button>
+        )}
+
+        {/* If it's still NEW, the initiator can Edit or Withdraw */}
+        {nfa.status === "NEW" && userId === nfa.initiator_id && (
           <>
-            <div className="flex items-center justify-between gap-2 ">
-              <Button onClick={() => handleAction(true)}>
-                {userRole === "RECOMMENDOR" ? "Initiate NFA" : "Approve"}
-              </Button>
-              <Button
-                onClick={() => handleAction(false)}
-                className="bf-red-500 text-white"
-              >
+            <Button onClick={handleEditRequest}>Edit NFA</Button>
+            <Button variant="destructive" onClick={handleWithdraw}>
+              Withdraw NFA
+            </Button>
+          </>
+        )}
+
+        {/* If you can act (recommend or approve), show approve/reject with a comment box */}
+        {canAct && (
+          <div className="flex flex-col items-end gap-2">
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Enter your comment"
+              className="border border-gray-300 rounded p-1 text-sm w-60"
+            />
+            <div className="flex gap-2">
+              <Button onClick={() => handleAction(true)}>Approve</Button>
+              <Button variant="destructive" onClick={() => handleAction(false)}>
                 Reject
               </Button>
             </div>
-          </>
-        ) : (
-          <>
-            <p className="text-stone-400 text-sm">
-              Already acted ont the request
-            </p>
-          </>
+          </div>
         )}
       </div>
     </div>
