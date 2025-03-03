@@ -408,6 +408,9 @@ export default function RaiseNFA() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            {errors.area && (
+              <p className="text-red-500 text-sm">{errors.area.message}</p>
+            )}
           </div>
 
           {/* Show input field only if "Other" is selected */}
@@ -482,7 +485,7 @@ export default function RaiseNFA() {
 
           {/* Tower selection */}
           {!isOtherProject && towersMapping[selectedProject] && (
-            <>
+            <div className="flex  flex-col w-ful gap-1">
               <div className="flex flex-col">
                 <label className="block text-sm font-medium text-gray-700">
                   Towers
@@ -506,12 +509,12 @@ export default function RaiseNFA() {
               {errors.tower && (
                 <p className="text-red-500 text-sm">{errors.tower.message}</p>
               )}
-            </>
+            </div>
           )}
 
           {/* Other Tower */}
           {(isOtherTower || isOtherProject) && (
-            <>
+            <div className="flex flex-col w-full gap-1">
               <div className="flex flex-col">
                 <label className="block text-sm font-medium text-gray-700">
                   Enter Custom Tower
@@ -520,13 +523,13 @@ export default function RaiseNFA() {
                   type="text"
                   placeholder="Enter custom Tower"
                   {...register("tower")}
-                  className="mt-2 p-2 border rounded-md w-full"
+                  className="mt-1 block w-full px-3 py-1.5 text-sm text-gray-800  border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
               {errors.tower && (
                 <p className="text-red-500 text-sm">{errors.tower.message}</p>
               )}
-            </>
+            </div>
           )}
 
           {/* department */}
@@ -557,6 +560,11 @@ export default function RaiseNFA() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            {errors.department && (
+              <p className="text-red-500 text-sm">
+                {errors.department.message}
+              </p>
+            )}
           </div>
 
           {/* Show input field only if "Other" is selected */}
@@ -599,6 +607,9 @@ export default function RaiseNFA() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            {errors.priority && (
+              <p className="text-red-500 text-sm">{errors.priority.message}</p>
+            )}
           </div>
 
           {/* <div className="flex flex-col">
@@ -676,6 +687,11 @@ export default function RaiseNFA() {
                 : "Select User..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
+            {errors.supervisor_id && (
+              <p className="text-red-500 text-sm">
+                {errors.supervisor_id.message}
+              </p>
+            )}
 
             {open && (
               <div className="absolute top-full left-0 w-full z-50 bg-white shadow-lg border rounded-md mt-1">
