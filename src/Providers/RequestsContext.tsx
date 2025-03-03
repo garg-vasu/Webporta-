@@ -78,6 +78,7 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axios.get(`${BASE_URL}/requests/`, {
         headers: { Authorization: token },
       });
+      console.log(response.data);
       const all: ApprovalData[] = response.data || [];
 
       const parseDate = (dateStr: string) => {

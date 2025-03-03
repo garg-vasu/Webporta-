@@ -86,37 +86,33 @@ export default function SeeNfa() {
   };
 
   const handleAction = async (approved) => {
-    try {
+    setTimeout(async () => {
       setPageLoading(true);
-
-      const payload = {
-        request_id: noteid,
-        approved,
-        comment,
-      };
-
-      const endpoint =
-        userRole === "RECOMMENDOR"
-          ? `${BASE_URL}/requests/supervisor-review`
-          : `${BASE_URL}/requests/approve`;
-
-      const response = await axios.post(endpoint, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-
-      // If successful, proceed with the alert and navigation
-      alert("Action completed");
-      setComment("");
-      navigate("/dashboard"); // Assuming react-router is used
-    } catch (error) {
-      console.error("Approval error:", error);
-      alert("Action failed");
-    } finally {
-      setPageLoading(false);
-    }
+      try {
+        const payload = {
+          request_id: noteid,
+          approved,
+          comment,
+        };
+        if (userRole === "RECOMMENDOR") {
+          await axios.post(`${BASE_URL}/requests/supervisor-review`, payload, {
+            headers: { Authorization: token },
+          });
+        } else {
+          await axios.post(`${BASE_URL}/requests/approve`, payload, {
+            headers: { Authorization: token },
+          });
+        }
+        alert("Action completed");
+        setComment("");
+        navigate("Dashboard");
+      } catch (err) {
+        console.error("Approval error:", err);
+        alert("Action failed");
+      } finally {
+        setPageLoading(false);
+      }
+    }, 100);
   };
 
   const handleReinitiate = () => {
@@ -271,10 +267,32 @@ export default function SeeNfa() {
           <Button onClick={handleReinitiate}>Re-initiate Request</Button>
         )}
         {nfa?.status === "NEW" && userId === nfa?.initiator_id && (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 ">
             <Button onClick={handleEditRequest}>Edit NFA</Button>
             <Button onClick={handleWithdraw}>Withdraw NFA</Button>
           </div>
+        )}
+
+        {canAct ? (
+          <>
+            <div className="flex items-center justify-between gap-2 ">
+              <Button onClick={() => handleAction(true)}>
+                {userRole === "RECOMMENDOR" ? "Initiate NFA" : "Approve"}
+              </Button>
+              <Button
+                onClick={() => handleAction(false)}
+                className="bf-red-500 text-white"
+              >
+                Reject
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-stone-400 text-sm">
+              Already acted ont the request
+            </p>
+          </>
         )}
       </div>
     </div>

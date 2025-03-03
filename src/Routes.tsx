@@ -10,15 +10,21 @@ import { RequestsProvider } from "./Providers/RequestsContext";
 import SeachNfa from "./Pages/SearchNfa";
 import ApprovalScreen from "./Pages/ApprovalScreen";
 import Allnfa from "./Pages/Allnfa";
+import { UserProvider } from "./Providers/UserProvider";
+import PrivateRoute from "./PrivateRoute";
 
 const routes: RouteObject[] = [
   { path: "/login", element: <AuthLayout /> },
   {
     path: "/",
     element: (
-      <RequestsProvider>
-        <MainLayout />
-      </RequestsProvider>
+      <PrivateRoute>
+        {/* <UserProvider> */}
+        <RequestsProvider>
+          <MainLayout />
+        </RequestsProvider>
+        {/* </UserProvider> */}
+      </PrivateRoute>
     ),
     children: [
       { index: true, element: <Dashboard /> },

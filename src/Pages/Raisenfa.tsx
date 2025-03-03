@@ -612,65 +612,6 @@ export default function RaiseNFA() {
             )}
           </div>
 
-          {/* <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-700">
-              Select Supervisor
-            </label>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-              onClick={() => {
-                setOpen((prev) => !prev);
-              }}
-            >
-              {values
-                ? AllUsers.find((user) => user.name === values)?.name
-                : "Select User..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-            {open && (
-              <div className="w-full p-0">
-                <Command>
-                  <Commandinput placeholder="Search framework..." />
-                  <CommandList>
-                    <CommandEmpty>No framework found.</CommandEmpty>
-                    <CommandGroup>
-                      {AllUsers.map((framework) => (
-                        <CommandItem
-                          key={framework.name}
-                          value={framework.name}
-                          onSelect={(currentValue) => {
-                            const selectedUser = AllUsers.find(
-                              (u) => u.name === currentValue
-                            );
-                            setValues(selectedUser ? selectedUser.name : "");
-                            if (selectedUser)
-                              setValue(
-                                "supervisor_id",
-                                Number(selectedUser.id)
-                              );
-                            setOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              values === framework.name
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {framework.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </div>
-            )}
-          </div> */}
           <div className="flex flex-col relative">
             <label className="block text-sm font-medium text-gray-700">
               Select Supervisor
