@@ -14,12 +14,15 @@ import { UserProvider } from "./Providers/UserProvider";
 import PrivateRoute from "./PrivateRoute";
 
 const routes: RouteObject[] = [
-  { path: "/login", element: <AuthLayout /> },
+  {
+    path: "/login",
+    element: <AuthLayout />,
+  },
   {
     path: "/",
     element: (
       <PrivateRoute>
-        {/* <UserProvider> */}
+        {/* <UserProvider> -- If you wish to wrap in your own UserProvider */}
         <RequestsProvider>
           <MainLayout />
         </RequestsProvider>
@@ -27,13 +30,42 @@ const routes: RouteObject[] = [
       </PrivateRoute>
     ),
     children: [
-      { index: true, element: <Dashboard /> },
-      { path: "raisenfa", element: <RaiseNFA /> },
-      { path: "nfa/:noteid", element: <SeeNfa /> },
-      { path: "popover", element: <PopoverDemo /> },
-      { path: "mynfa", element: <SeachNfa /> },
-      { path: "allnfa", element: <Allnfa /> },
-      { path: "approvals", element: <ApprovalScreen /> },
+      // Dashboard is shown by default at "/"
+      {
+        index: true,
+        element: <Dashboard />,
+      },
+      // CREATE a new NFA
+      {
+        path: "raisenfa",
+        element: <RaiseNFA />,
+      },
+      // EDIT an existing NFA
+      {
+        path: "editnfa/:id",
+        element: <RaiseNFA />,
+      },
+      // View NFA details
+      {
+        path: "nfa/:noteid",
+        element: <SeeNfa />,
+      },
+      {
+        path: "popover",
+        element: <PopoverDemo />,
+      },
+      {
+        path: "mynfa",
+        element: <SeachNfa />,
+      },
+      {
+        path: "allnfa",
+        element: <Allnfa />,
+      },
+      {
+        path: "approvals",
+        element: <ApprovalScreen />,
+      },
     ],
   },
 ];
