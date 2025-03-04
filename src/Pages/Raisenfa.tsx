@@ -179,7 +179,7 @@ export default function RaiseNFA() {
       });
       // 'existingData' is the server representation of the NFA
       const existingData = response.data;
-      // Populate each field
+      // Populate each field with default fallback values
       setValue("description", existingData.description || "");
       setValue("tower", existingData.tower || "");
       setValue("department", existingData.department || "");
@@ -193,7 +193,7 @@ export default function RaiseNFA() {
       setValue("approvers", existingData.approvers || []);
       // We'll set the files array to empty by default, since we normally do not re-upload existing files
       setValue("files", []);
-
+  
       // For display in the supervisor combobox
       const chosenSupervisor = AllUsers.find(
         (u) => u.id === existingData.supervisor_id
@@ -201,8 +201,8 @@ export default function RaiseNFA() {
       if (chosenSupervisor) {
         setValues(chosenSupervisor.name);
       }
-
-      // Handle “other” fields for area, department, etc. if the data is not in the known list
+  
+      // Handle “other” fields for area, department, etc.
       if (
         existingData.area &&
         !["Wish Town", "Mirzapur", "Aman", "Expressway", "Hafiz Contractor"].includes(
@@ -219,19 +219,15 @@ export default function RaiseNFA() {
       ) {
         setIsOtherDep(true);
       }
-      // Similar approach for project & tower if they are not from known sets
       if (
         existingData.project &&
         !Object.keys(towersMapping).includes(existingData.project)
       ) {
         setIsOtherProject(true);
       } else {
-        // If the project is known, track which tower is chosen
         setSelectedProject(existingData.project || "");
       }
-
       if (existingData.tower) {
-        // If tower is not in the known tower set, set isOtherTower true
         const knownTowers = towersMapping[existingData.project] || [];
         if (!knownTowers.includes(existingData.tower)) {
           setIsOtherTower(true);
@@ -243,6 +239,7 @@ export default function RaiseNFA() {
       setLoading(false);
     }
   };
+  
 
   // Runs once on component mount to get user details
   useEffect(() => {
