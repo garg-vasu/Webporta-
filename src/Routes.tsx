@@ -9,7 +9,7 @@ import SeeNfa from "./Pages/SeeNfa";
 import { RequestsProvider } from "./Providers/RequestsContext";
 import SeachNfa from "./Pages/SearchNfa";
 import ApprovalScreen from "./Pages/ApprovalScreen";
-import Allnfa from "./Pages/Allnfa";
+
 import { UserProvider } from "./Providers/UserProvider";
 import PrivateRoute from "./PrivateRoute";
 
@@ -23,9 +23,11 @@ const routes: RouteObject[] = [
     element: (
       <PrivateRoute>
         {/* <UserProvider> -- If you wish to wrap in your own UserProvider */}
-        <RequestsProvider>
-          <MainLayout />
-        </RequestsProvider>
+        <UserProvider>
+          <RequestsProvider>
+            <MainLayout />
+          </RequestsProvider>
+        </UserProvider>
         {/* </UserProvider> */}
       </PrivateRoute>
     ),
@@ -58,10 +60,7 @@ const routes: RouteObject[] = [
         path: "mynfa",
         element: <SeachNfa />,
       },
-      {
-        path: "allnfa",
-        element: <Allnfa />,
-      },
+
       {
         path: "approvals",
         element: <ApprovalScreen />,

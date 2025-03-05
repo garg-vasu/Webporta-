@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useRequests } from "@/Providers/RequestsContext";
+import { request } from "http";
 
 export type UserSchema = {
   name: string;
@@ -52,9 +54,7 @@ const nfaSchema = z.object({
   files: z.any(),
 });
 
-const BASE_URL = "https://blueinvent.dockerserver.online/";
-
-// Your base URL
+const BASE_URL = "https://blueinvent.dockerserver.online";
 
 // Type for form fields after Zod validation
 type FormFields = z.infer<typeof nfaSchema>;
@@ -63,6 +63,7 @@ export default function RaiseNFA() {
   // Check if we are in "edit" mode vs. "create" mode
   const { id } = useParams();
   const isEditMode = Boolean(id);
+  const { requests, loading, fetchRequests } = useRequests();
 
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const [values, setValues] = useState("");
@@ -71,7 +72,7 @@ export default function RaiseNFA() {
   const [userId, setUserId] = useState(0);
   const [AllUsers, setAllUsers] = useState<UserSchema[]>([]);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [newloading, setNewLoading] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [approverList, setApproverList] = useState<UserSchema[]>([]);
   const [selectedProject, setSelectedProject] = useState("");
@@ -131,7 +132,7 @@ export default function RaiseNFA() {
 
   // Fetch the current logged-in user details to get userId
   const fetchUserDetails = async () => {
-    setLoading(true);
+    setNewLoading(true);
     try {
       const response = await axios.get(`${BASE_URL}/users/me`, {
         headers: { Authorization: token },
@@ -142,13 +143,13 @@ export default function RaiseNFA() {
     } catch (error) {
       console.error("Error fetching user:", error);
     } finally {
-      setLoading(false);
+      setNewLoading(false);
     }
   };
 
   // Fetch all users, so we can choose supervisor and approvers
   const fetchAllUsers = async () => {
-    setLoading(true);
+    setNewLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}/users/`, {
         headers: {
@@ -169,20 +170,20 @@ export default function RaiseNFA() {
     } catch (err) {
       console.error("Error fetching users:", err);
     } finally {
-      setLoading(false);
+      setNewLoading(false);
     }
   };
 
   // If "edit" mode, fetch existing NFA data to pre-populate the form
   const fetchExistingNfa = async (requestId: string) => {
-    setLoading(true);
+    setNewLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}/requests/${requestId}`, {
-        headers: { Authorization: token },
-      });
-      // 'existingData' is the server representation of the NFA
-      const existingData = response.data;
-      // Populate each field with default fallback values
+      // Find the request that matches requestId
+      const existingData = requests.find((req) => req.id === Number(requestId));
+      console.log(existingData);
+      if (!existingData) {
+        throw new Error(`Request with ID ${requestId} not found`);
+      }
       setValue("description", existingData.description || "");
       setValue("tower", existingData.tower || "");
       setValue("department", existingData.department || "");
@@ -243,7 +244,7 @@ export default function RaiseNFA() {
     } catch (err) {
       console.error("Error fetching existing NFA:", err);
     } finally {
-      setLoading(false);
+      setNewLoading(false);
     }
   };
 
@@ -325,7 +326,6 @@ export default function RaiseNFA() {
   // When user submits the form
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
-      // Build a FormData for file upload
       const formData = new FormData();
       formData.append("initiator_id", userId.toString());
       formData.append("supervisor_id", data.supervisor_id.toString());
@@ -344,33 +344,49 @@ export default function RaiseNFA() {
         formData.append("files", file);
       });
 
-      if (isEditMode) {
-        // If editing, call the PUT or PATCH endpoint
-        await axios.put(`${BASE_URL}/requests/${id}`, formData, {
-          headers: {
-            Authorization: token,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        alert("NFA updated successfully");
-      } else {
-        // If creating a new NFA
-        await axios.post(`${BASE_URL}/requests/`, formData, {
-          headers: {
-            Authorization: token,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        alert("NFA raised successfully");
-      }
+      const url = isEditMode
+        ? `${BASE_URL}/requests/${id}`
+        : `${BASE_URL}/requests/`;
 
-      // Navigate away upon success (e.g., to /dashboard or /mynfa)
-      navigate("/dashboard");
+      const response = await axios({
+        method: isEditMode ? "PUT" : "POST",
+        url,
+        data: formData,
+        headers: {
+          Authorization: token,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 201) {
+        alert(
+          isEditMode ? "NFA updated successfully" : "NFA raised successfully"
+        );
+        navigate("/dashboard");
+      } else {
+        throw new Error("Unexpected response format");
+      }
     } catch (error) {
-      console.error("NFA submission failed:", error);
-      alert("Failed to submit NFA");
+      console.error(
+        "NFA submission failed:",
+        error.response?.data || error.message
+      );
+      alert(
+        `Failed to submit NFA: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     }
   };
+
+  {
+    newloading && (
+      <div className="flex items-center mb-4">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-4">
@@ -380,21 +396,22 @@ export default function RaiseNFA() {
       <hr className="border-gray-300 mb-4" />
 
       {/* If loading is needed */}
-      {loading && (
+      {/* {loading && (
         <div className="flex items-center mb-4">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           <span>Loading...</span>
         </div>
-      )}
+      )} */}
 
       <form onSubmit={handleSubmit(onSubmit)} className="mb-4 mt-4 pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Description */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
-              Description
+              Description <span className="text-red-500">*</span>
             </label>
             <input
+              required
               {...register("description")}
               type="text"
               placeholder="Enter description"
@@ -410,9 +427,10 @@ export default function RaiseNFA() {
           {/* References */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
-              References
+              References <span className="text-red-500">*</span>
             </label>
             <input
+              required
               {...register("references")}
               type="text"
               placeholder="Enter references"
@@ -428,9 +446,10 @@ export default function RaiseNFA() {
           {/* Subject */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
-              Subject
+              Subject <span className="text-red-500">*</span>
             </label>
             <input
+              required
               {...register("subject")}
               type="text"
               placeholder="Enter subject"
@@ -446,9 +465,12 @@ export default function RaiseNFA() {
           {/* Area */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
-              Area
+              Area <span className="text-red-500">*</span>
             </label>
-            <Select onValueChange={handleAreaChange}>
+            <Select
+              value={isOtherSelected ? "Other" : watch("area") || ""}
+              onValueChange={handleAreaChange}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Area" />
               </SelectTrigger>
@@ -479,12 +501,13 @@ export default function RaiseNFA() {
           {isOtherSelected && (
             <div className="flex flex-col">
               <label className="block text-sm font-medium text-gray-700">
-                Enter custom Area
+                Enter custom Area <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 placeholder="Enter custom area"
                 {...register("area")}
+                value={watch("area") || ""}
                 className="mt-1 block w-full px-3 py-1.5 text-sm border rounded-md"
               />
               {errors.area && (
@@ -496,9 +519,12 @@ export default function RaiseNFA() {
           {/* Project dropdown */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
-              Project
+              Project <span className="text-red-500">*</span>
             </label>
-            <Select onValueChange={handleProjectChange}>
+            <Select
+              value={isOtherProject ? "Other" : watch("project") || ""}
+              onValueChange={handleProjectChange}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Project" />
               </SelectTrigger>
@@ -521,7 +547,7 @@ export default function RaiseNFA() {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {errors.project && (
+            {errors.project && isOtherProject && (
               <p className="text-red-500 text-sm">{errors.project.message}</p>
             )}
           </div>
@@ -530,7 +556,7 @@ export default function RaiseNFA() {
           {isOtherProject && (
             <div className="flex flex-col">
               <label className="block text-sm font-medium text-gray-700">
-                Enter Custom Project
+                Enter Custom Project <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -548,9 +574,12 @@ export default function RaiseNFA() {
           {!isOtherProject && towersMapping[selectedProject] && (
             <div className="flex flex-col">
               <label className="block text-sm font-medium text-gray-700">
-                Tower
+                Tower <span className="text-red-500">*</span>
               </label>
-              <Select onValueChange={handleTowerChange}>
+              <Select
+                value={isOtherTower ? "Other" : watch("tower") || ""}
+                onValueChange={handleTowerChange}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Tower" />
                 </SelectTrigger>
@@ -566,7 +595,7 @@ export default function RaiseNFA() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              {errors.tower && (
+              {errors.tower && isOtherTower && (
                 <p className="text-red-500 text-sm">{errors.tower.message}</p>
               )}
             </div>
@@ -576,12 +605,13 @@ export default function RaiseNFA() {
           {(isOtherTower || isOtherProject) && (
             <div className="flex flex-col">
               <label className="block text-sm font-medium text-gray-700">
-                Enter Custom Tower
+                Enter Custom Tower <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 placeholder="Enter custom tower"
                 {...register("tower")}
+                value={watch("tower") || ""}
                 className="mt-1 block w-full px-3 py-1.5 text-sm border rounded-md"
               />
               {errors.tower && (
@@ -593,9 +623,12 @@ export default function RaiseNFA() {
           {/* Department */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
-              Department
+              Department <span className="text-red-500">*</span>
             </label>
-            <Select onValueChange={handleDeptChange}>
+            <Select
+              value={isOtherDep ? "Other" : watch("department") || ""}
+              onValueChange={handleDeptChange}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Department" />
               </SelectTrigger>
@@ -618,7 +651,7 @@ export default function RaiseNFA() {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {errors.department && (
+            {errors.department && isOtherDep && (
               <p className="text-red-500 text-sm">
                 {errors.department.message}
               </p>
@@ -629,12 +662,13 @@ export default function RaiseNFA() {
           {isOtherDep && (
             <div className="flex flex-col">
               <label className="block text-sm font-medium text-gray-700">
-                Enter Custom Department
+                Enter Custom Department <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 placeholder="Enter custom Department"
                 {...register("department")}
+                value={watch("department") || ""}
                 className="mt-2 px-3 py-1.5 border rounded-md w-full"
               />
               {errors.department && (
@@ -648,9 +682,12 @@ export default function RaiseNFA() {
           {/* Priority */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
-              Priority
+              Priority <span className="text-red-500">*</span>
             </label>
-            <Select onValueChange={(value) => setValue("priority", value)}>
+            <Select
+              value={watch("priority")}
+              onValueChange={(value) => setValue("priority", value)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Priority" />
               </SelectTrigger>
@@ -673,14 +710,17 @@ export default function RaiseNFA() {
           {/* Supervisor dropdown */}
           <div className="flex flex-col relative">
             <label className="block text-sm font-medium text-gray-700">
-              Select Supervisor
+              Select Supervisor <span className="text-red-500">*</span>
             </label>
             <Button
               variant="outline"
               role="combobox"
               aria-expanded={open}
               className="w-full justify-between"
-              onClick={() => setOpen((prev) => !prev)}
+              onClick={(e) => {
+                e.preventDefault();
+                setOpen((prev) => !prev);
+              }}
             >
               {values ? values : "Select User..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -752,7 +792,8 @@ export default function RaiseNFA() {
                       <button
                         type="button"
                         className="text-red-600 text-sm underline"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
                           // Remove the field from react-hook-form
                           remove(index);
                         }}
@@ -766,9 +807,10 @@ export default function RaiseNFA() {
                     role="combobox"
                     aria-expanded={openDropdown === index}
                     className="w-full justify-between mt-1"
-                    onClick={() =>
-                      setOpenDropdown(openDropdown === index ? null : index)
-                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpenDropdown(openDropdown === index ? null : index);
+                    }}
                   >
                     {selectedApprover
                       ? selectedApprover.name

@@ -4,7 +4,7 @@ import { CheckCircle, XCircle, Clock, HelpCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://blueinvent.dockerserver.online/";
+const BASE_URL = "https://blueinvent.dockerserver.online";
 
 export default function ApprovalScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -146,11 +146,18 @@ export default function ApprovalScreen() {
                 className="border p-4 mb-2 rounded cursor-pointer"
                 onClick={() => navigate(`/nfa/${r.id}`)}
               >
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">
-                    {r.status.toUpperCase()}
-                  </h2>
-                  <Icon size={22} color={color} />
+                <div className="flex justify-between ">
+                  <p className="text-lg font-bold capitalize">
+                    {r.subject?.length > 35
+                      ? r.subject.substring(0, 35) + "..."
+                      : r.subject || "NA"}
+                  </p>
+                  <div className="flex gap-2 items-center justify-center">
+                    <h2 className="text-md font-semibold">
+                      {r.status.toUpperCase()}
+                    </h2>
+                    <Icon size={22} color={color} />
+                  </div>
                 </div>
                 <p className="text-sm">
                   {r.subject?.length > 35
@@ -163,7 +170,7 @@ export default function ApprovalScreen() {
                 <p className="text-sm text-gray-500">
                   Supervisor: {r.supervisor_name}
                 </p>
-                {approvalTab === "Pending" && canUserAct(r) && (
+                {/* {approvalTab === "Pending" && canUserAct(r) && (
                   <div className="flex gap-2 mt-2">
                     <button
                       className="px-4 py-2 bg-green-500 text-white rounded"
@@ -186,7 +193,7 @@ export default function ApprovalScreen() {
                       Reject
                     </button>
                   </div>
-                )}
+                )} */}
               </div>
             );
           })

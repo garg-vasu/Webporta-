@@ -38,7 +38,7 @@ export default function LoginForm() {
 
     try {
       const response = await axios.post(
-        "https://blueinvent.dockerserver.online/login/",
+        "https://blueinvent.dockerserver.online/login",
         formattedData,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },

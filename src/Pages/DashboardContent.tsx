@@ -1,5 +1,5 @@
 import { useRequests } from "@/Providers/RequestsContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -18,9 +18,9 @@ const STAGE_COLORS = {
   NEW: "text-orange-600",
 };
 const PIOR_COLORS = {
-  HIGH: "text-red-600",
-  MEDIUM: "text-yellow-600",
-  LOW: "text-green-600",
+  HIGH: "bg-red-600",
+  MEDIUM: "bg-yellow-600",
+  LOW: "bg-green-600",
 };
 
 const formatDate = (dateStr) => {
@@ -39,6 +39,10 @@ export default function DashboardContent() {
   const { requests, loading, fetchRequests } = useRequests();
   const [filter, setFilter] = useState("ALL");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
   const getFilteredRequests = () => {
     if (filter === "ALL") return requests;
@@ -99,34 +103,41 @@ export default function DashboardContent() {
                 STATUS_COLORS[req.status?.toUpperCase()] || "border-gray-300"
               }`}
             >
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-lg text-gray-900 capitalize">
-                  {req.subject}
-                </h3>
-                <p
+              <div className="flex  justify-between items-center">
+                <div className="flex  gap-2 items-center justify-center">
+                  <h3 className="font-semibold text-lg text-gray-900 capitalize">
+                    {req.subject}
+                  </h3>
+                  <p
+                    className={` ${
+                      PIOR_COLORS[req.priority?.toUpperCase()] ||
+                      "text-blue-900"
+                    } px-3 py-0.5 rounded-full text-white capitalize text-sm `}
+                  >
+                    {req.priority}
+                  </p>
+                </div>
+
+                <div
                   className={`text-md font-semibold animate-bounce ${
                     STAGE_COLORS[req.status?.toUpperCase()] || "text-gray-600"
                   }`}
                 >
                   {req.status}
-                </p>
+                </div>
               </div>
-              <p
-                className={`text-md font-semibold mt-1 ${
-                  PIOR_COLORS[req.priority?.toUpperCase()] || "text-blue-900"
-                }`}
-              >
-                {req.priority} Priority
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Date: {formatDate(req.created_at)}
-              </p>
-              {/* <p className="text-sm text-gray-600">
+              <div className="flex gap-2 items-center justify-start">
+                <p className="text-sm text-gray-500 mt-1">
+                  Date: {formatDate(req.created_at)}
+                </p>
+                {/* <p className="text-sm text-gray-600">
                 Department: {req.department}
               </p> */}
-              <p className="text-sm capitalize text-gray-700">
-                Initiated By: {req.initiator_name}
-              </p>
+                <p className="text-sm capitalize text-gray-700">
+                  Initiated By: {req.initiator_name}
+                </p>
+              </div>
+
               {req.files.length > 0 && (
                 <div className="mt-1">
                   <p className="text-sm font-semibold text-gray-700">

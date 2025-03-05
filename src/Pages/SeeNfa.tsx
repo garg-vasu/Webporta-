@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequests } from "@/Providers/RequestsContext"; // or your context location
 
-const BASE_URL = "https://running-corrine-studenttt702-a4e108db.koyeb.app"; 
+const BASE_URL = "https://blueinvent.dockerserver.online";
 
 export default function SeeNfa() {
-  const { noteid } = useParams<{ noteid: string }>(); 
+  const { noteid } = useParams<{ noteid: string }>();
   const navigate = useNavigate();
   const token = localStorage.getItem("token") || "";
   const [userId, setUserId] = useState(0);
@@ -17,7 +17,7 @@ export default function SeeNfa() {
   const [comment, setComment] = useState("");
 
   // From your context (or fetch individually if you prefer)
-  const { requests, loading } = useRequests(); 
+  const { requests, loading } = useRequests();
   const nfa = requests.find((r) => r.id === Number(noteid));
 
   // Fetch the current user’s ID
@@ -91,18 +91,30 @@ export default function SeeNfa() {
         approved,
         comment,
       };
+      console.log(payload);
+      let response;
+
       if (userRole === "RECOMMENDOR") {
-        await axios.post(`${BASE_URL}/requests/supervisor-review`, payload, {
-          headers: { Authorization: token },
-        });
+        response = await axios.post(
+          `${BASE_URL}/requests/supervisor-review`,
+          payload,
+          {
+            headers: { Authorization: token },
+          }
+        );
       } else {
-        await axios.post(`${BASE_URL}/requests/approve`, payload, {
+        response = await axios.post(`${BASE_URL}/requests/approve`, payload, {
           headers: { Authorization: token },
         });
       }
-      alert("Action completed");
-      setComment("");
-      navigate("/dashboard");
+
+      if (response.status === 200) {
+        alert("Action completed");
+        setComment("");
+        navigate("/dashboard");
+      } else {
+        alert("Action failed");
+      }
     } catch (err) {
       console.error("Approval error:", err);
       alert("Action failed");
@@ -129,7 +141,7 @@ export default function SeeNfa() {
         headers: { Authorization: token },
       });
       alert("NFA withdrawn successfully");
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       console.error("Withdraw error:", error);
       alert("Withdrawal failed");

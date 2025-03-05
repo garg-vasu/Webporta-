@@ -44,7 +44,7 @@ const menuItem: MenuItem[] = [
     //   },
     // ],
   },
-  { name: "Search NFA", icon: Search, to: "/allnfa" },
+  // { name: "Search NFA", icon: Search, to: "/allnfa" },
   {
     name: "Approvals",
     icon: Signature,

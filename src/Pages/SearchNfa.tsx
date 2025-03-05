@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function SeachNfa() {
   const { startLoading, setStartLoading } = useState(false);
@@ -56,6 +57,8 @@ export default function SeachNfa() {
     "Kosmos": ["Tower A", "Tower B", "Tower C", "Tower D"],
     "Kube": ["Tower A", "Tower B", "Tower C", "Tower D"],
   };
+
+  const navigate = useNavigate();
   const DEPARTMENTS = [
     "Civil",
     "Finance",
@@ -162,9 +165,9 @@ export default function SeachNfa() {
     };
 
     const PIOR_COLORS = {
-      HIGH: "text-red-600",
-      MEDIUM: "text-yellow-600",
-      LOW: "text-green-600",
+      HIGH: "bg-red-600",
+      MEDIUM: "bg-yellow-600",
+      LOW: "bg-green-600",
     };
 
     return (
@@ -172,20 +175,26 @@ export default function SeachNfa() {
         key={item.id}
         className={`w-full border-l-4 px-4 py-2 mb-4 bg-white shadow-md rounded-lg hover:bg-gray-100 transition 
           ${STATUS_COLORS[item.status?.toUpperCase()] || "border-gray-300"} `}
+        onClick={(e) => {
+          e.preventDefault();
+          navigate(`/nfa/${item.id}`);
+        }}
       >
         <div className="flex flex-col  ">
           <div className="flex justify-between items-center mb-1">
             <div className="flex flex-col items-start">
-              <p className="text-lg text-blue-800 truncate capitalize">
-                {shortSubject}
-              </p>
-              <p
-                className={`${
-                  PIOR_COLORS[item.priority?.toUpperCase()] || "text-blue-900"
-                }`}
-              >
-                {item.priority}
-              </p>
+              <div className="flex gap-2 items-center justify-center  ">
+                <h2 className="text-lg text-blue-800 truncate capitalize">
+                  {shortSubject}
+                </h2>
+                <div
+                  className={` ${
+                    PIOR_COLORS[item.priority?.toUpperCase()] || "text-blue-900"
+                  } px-3 py-0.5 rounded-full text-white capitalize text-sm `}
+                >
+                  {item.priority}
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-center gap-2">
@@ -196,19 +205,26 @@ export default function SeachNfa() {
             </div>
           </div>
 
-          <p className="text-sm text-gray-600 text-start">
-            <strong>Initiator:</strong> {item.initiator_name}
-          </p>
-          <p className="text-sm text-gray-600 text-start">
-            <strong>Date:</strong> {item.created_at}
-          </p>
-          <p className="text-sm text-gray-600 text-start">
-            <strong>Approvers({item.approval_hierarchy.length})</strong>
-            {/* {item.approval_hierarchy
-              ?.map((ap) => ap.name)
-              .filter(Boolean)
-              .join(", ") || "NA"} */}
-          </p>
+          <div className="flex gap-2">
+            <p className="text-sm text-gray-600 text-start">
+              <strong>Initiator:</strong> {item.initiator_name}
+            </p>
+            <p className="text-sm text-gray-600 text-start">
+              <strong>Initation Date:</strong> {item.created_at}
+            </p>
+          </div>
+          <div className="flex ">
+            <p className="text-sm text-gray-600 text-start">
+              <p className="font-bold">
+                Approvers:
+                {/* ({item.approval_hierarchy.length}) */}
+              </p>
+              {item.approval_hierarchy
+                ?.map((ap) => ap.name)
+                .filter(Boolean)
+                .join(", ") || "NA"}
+            </p>
+          </div>
         </div>
       </button>
     );
