@@ -4,7 +4,7 @@ import { CheckCircle, XCircle, Clock, HelpCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://running-corrine-studenttt702-a4e108db.koyeb.app";
+const BASE_URL = "https://blueinvent.dockerserver.online/";
 
 export default function ApprovalScreen() {
   const [isLoading, setIsLoading] = useState(false);

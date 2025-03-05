@@ -3,9 +3,9 @@ import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { ChartNoAxesColumnDecreasing, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-const BASE_URL = "https://running-corrine-studenttt702-a4e108db.koyeb.app";
+const BASE_URL = "https://blueinvent.dockerserver.online";
 
 const schema = z.object({
   username: z.string().min(1, "Invalid email address"),
@@ -30,14 +30,20 @@ export default function LoginForm() {
   } = useForm<FormFields>({ resolver: zodResolver(schema) });
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    const formattedData = { ...data };
+    const formattedData = new URLSearchParams();
+    formattedData.append("username", data.username);
+    formattedData.append("password", data.password);
 
-    console.log(formattedData);
+    console.log(formattedData.toString()); // Logs the URL-encoded string
 
     try {
-      const response = await axios.post(`${BASE_URL}/login`, formattedData, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      });
+      const response = await axios.post(
+        "https://blueinvent.dockerserver.online/login/",
+        formattedData,
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }
+      );
 
       if (response.status === 200) {
         console.log("Login successful:", response.data);
@@ -61,6 +67,7 @@ export default function LoginForm() {
       setError("root", {
         message: "Invalid credentials", // Use "root" for global errors
       });
+      console.error("Error fetching data:", error);
     }
   };
 

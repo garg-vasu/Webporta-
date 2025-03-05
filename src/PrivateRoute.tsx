@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://running-corrine-studenttt702-a4e108db.koyeb.app"; // Replace with actual API URL
+const BASE_URL = "https://blueinvent.dockerserver.online"; // Replace with actual API URL
 
 export default function PrivateRoute({ children }: PropsWithChildren) {
   const navigate = useNavigate();
