@@ -127,18 +127,18 @@ export default function DashboardContent() {
                 </div>
               </div>
               <div className="flex gap-2 items-center justify-start">
-                <p className="text-sm text-gray-500 mt-1">
-                  Date: {formatDate(req.created_at)}
+                <p className="text-sm text-gray-500 ">
+                  Initiated Date: {formatDate(req.created_at)}
                 </p>
                 {/* <p className="text-sm text-gray-600">
                 Department: {req.department}
               </p> */}
-                <p className="text-sm capitalize text-gray-700">
+                <p className="text-sm capitalize flex items-center  text-gray-700">
                   Initiated By: {req.initiator_name}
                 </p>
               </div>
 
-              {req.files.length > 0 && (
+              {/* {req.files.length > 0 && (
                 <div className="mt-1">
                   <p className="text-sm font-semibold text-gray-700">
                     Attachments ({req.files.length})
@@ -154,7 +154,19 @@ export default function DashboardContent() {
                     </a>
                   ))}
                 </div>
-              )}
+              )} */}
+              <div className="flex ">
+                <p className="text-sm text-gray-600 text-start">
+                  <p className="font-bold">
+                    Approvers:
+                    {/* ({item.approval_hierarchy.length}) */}
+                  </p>
+                  {req.approval_hierarchy
+                    ?.map((ap) => ap.name)
+                    .filter(Boolean)
+                    .join(", ") || "NA"}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>

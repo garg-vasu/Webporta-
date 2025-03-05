@@ -5,7 +5,19 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequests } from "@/Providers/RequestsContext"; // or your context location
+const STAGE_COLORS = {
+  PENDING: "text-yellow-600",
+  APPROVED: "text-green-600",
+  REJECTED: "text-red-600",
+  NEW: "text-orange-600",
+};
 
+const STAGE_COLORS_border = {
+  PENDING: "border-yellow-600",
+  APPROVED: "border-green-600",
+  REJECTED: "border-red-600",
+  NEW: "border-orange-600",
+};
 const BASE_URL = "https://blueinvent.dockerserver.online";
 
 export default function SeeNfa() {
@@ -199,15 +211,22 @@ export default function SeeNfa() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.1 }}
-                  className="border border-gray-200 rounded-xl p-3 shadow-sm bg-white flex justify-between items-center"
+                  className={`border-l-4 border-gray-200 rounded-xl p-3 shadow-sm bg-white flex justify-between items-center
+                    ${
+                      STAGE_COLORS_border[act.approved?.toUpperCase()] ||
+                      "border-gray-300"
+                    }`}
                 >
                   <div>
-                    <p className="text-lg font-semibold capitalize">
-                      {act.name || "N/A"}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {act.role === "Supervisor" ? "Recommender" : act.role}
-                    </p>
+                    <div className="flex gap-2 items-center justify-center">
+                      <p className="text-lg font-semibold capitalize">
+                        {act.name || "N/A"}
+                      </p>
+                      <p className="text-sm font-semibold text-gray-500">
+                        {act.role === "Supervisor" ? "Recommender" : act.role}
+                      </p>
+                    </div>
+
                     <p className="text-xs text-gray-400 mt-1">
                       Received: {formatDate(act.received_at)}
                     </p>
@@ -222,14 +241,11 @@ export default function SeeNfa() {
                   </div>
 
                   <div className="text-right">
-                    <p className="text-sm text-gray-600">Status:</p>
+                    <p className="text-md text-gray-600 font-bold">Status</p>
                     <p
                       className={`text-md font-medium ${
-                        act.approved === "Approved"
-                          ? "text-green-600"
-                          : act.approved === "Rejected"
-                          ? "text-red-600"
-                          : "text-gray-800"
+                        STAGE_COLORS[act.approved?.toUpperCase()] ||
+                        "border-gray-300"
                       }`}
                     >
                       {act.approved || "N/A"}
@@ -295,7 +311,7 @@ export default function SeeNfa() {
 
         {/* If you can act (recommend or approve), show approve/reject with a comment box */}
         {canAct && (
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex  w-full flex-col items-end gap-2">
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
