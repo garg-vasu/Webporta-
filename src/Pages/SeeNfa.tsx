@@ -61,9 +61,23 @@ export default function SeeNfa() {
   }, [token]);
 
   // Example method to format date
+  // const formatDate = (date?: string) => {
+  //   if (!date) return "N/A";
+  //   return new Date(date).toLocaleDateString("en-US", {
+  //     day: "numeric",
+  //     month: "short",
+  //   });
+  // };
+
   const formatDate = (date?: string) => {
     if (!date) return "N/A";
-    return new Date(date).toLocaleDateString("en-US", {
+
+    // Replace "-" with "/" to ensure correct parsing
+    const parsedDate = new Date(date.replace(/-/g, "/"));
+
+    if (isNaN(parsedDate.getTime())) return "Not Approve till date";
+
+    return parsedDate.toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
     });
@@ -248,98 +262,96 @@ export default function SeeNfa() {
   return (
     <div className="pb-8 mb-4">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">NFA Detail</h2>
-      <Card className="w-full mb-4">
-        <CardHeader>
-          <CardTitle>Basic Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {[
-              { label: "NFA No.", value: nfa.id },
-              { label: "Initiator", value: nfa.initiator_name },
-              { label: "Subject", value: nfa.subject },
-              { label: "Description", value: nfa.description },
-              { label: "Area", value: nfa.area },
-              { label: "Project", value: nfa.project },
-              { label: "Tower", value: nfa.tower },
-              { label: "Department", value: nfa.department },
-              { label: "Priority", value: nfa.priority },
-              { label: "References", value: nfa.references },
-              { label: "Status", value: nfa.status },
-            ].map(({ label, value }, idx) => (
-              <div key={idx} className="flex justify-between border-b pb-2">
-                <span className="font-medium">{label}:</span>
-                <span>{value || "N/A"}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="w-full mb-4">
+        <h2 className="mb-2 text-lg">Basic Overview</h2>
+
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          {[
+            { label: "NFA No.", value: nfa.id },
+            { label: "Initiator", value: nfa.initiator_name },
+            { label: "Subject", value: nfa.subject },
+            // { label: "Description", value: nfa.description },
+            { label: "Area", value: nfa.area },
+            { label: "Project", value: nfa.project },
+            { label: "Tower", value: nfa.tower },
+            { label: "Department", value: nfa.department },
+            { label: "Priority", value: nfa.priority },
+            { label: "References", value: nfa.references },
+            { label: "Status", value: nfa.status },
+          ].map(({ label, value }, idx) => (
+            <div key={idx} className="flex justify-between border-b pb-2">
+              <span className="font-medium">{label}:</span>
+              <span>{value || "N/A"}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex flex-col gap-1">
+          <div className="font-medium">Description: </div>
+          <div>{nfa.description}</div>
+        </div>
+      </div>
 
       {/* Approval Hierarchy */}
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Approval Hierarchy</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {nfa.approval_hierarchy?.length ? (
-              nfa.approval_hierarchy.map((act: any, idx: number) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.1 }}
-                  className={`border-l-4 border-gray-200 rounded-xl p-3 shadow-sm bg-white flex justify-between items-center
+      <div className="w-full">
+        <h2 className="mb-4 text-lg ">Approval Hierarchy</h2>
+
+        <div className="space-y-2">
+          {nfa.approval_hierarchy?.length ? (
+            nfa.approval_hierarchy.map((act: any, idx: number) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: idx * 0.1 }}
+                className={`border-l-4 border-gray-200 rounded-xl p-3 shadow-sm bg-white flex justify-between items-center
                     ${
                       STAGE_COLORS_border[act.approved?.toUpperCase()] ||
                       "border-gray-300"
                     }`}
-                >
-                  <div>
-                    <div className="flex gap-2 items-center justify-center">
-                      <p className="text-lg font-semibold capitalize">
-                        {act.name || "N/A"}
-                      </p>
-                      <p className="text-sm font-semibold text-gray-500">
-                        {act.role === "Supervisor" ? "Recommender" : act.role}
-                      </p>
-                    </div>
-
-                    <p className="text-xs text-gray-400 mt-1">
-                      Received: {formatDate(act.received_at)}
+              >
+                <div>
+                  <div className="flex gap-2 items-center justify-center">
+                    <p className="text-lg font-semibold capitalize">
+                      {act.name || "N/A"}
                     </p>
-                    <p className="text-xs text-gray-400">
-                      Action: {formatDate(act.action_time)}
-                    </p>
-                    {act.comment && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        "{act.comment}"
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="text-right">
-                    <p className="text-md text-gray-600 font-bold">Status</p>
-                    <p
-                      className={`text-md font-medium ${
-                        STAGE_COLORS[act.approved?.toUpperCase()] ||
-                        "border-gray-300"
-                      }`}
-                    >
-                      {act.approved || "N/A"}
+                    <p className="text-sm font-semibold text-gray-500">
+                      {act.role === "Supervisor" ? "Recommender" : act.role}
                     </p>
                   </div>
-                </motion.div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500">
-                No approval data available.
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    Received: {formatDate(act.received_at)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Action: {formatDate(act.action_time)}
+                  </p>
+                  {act.comment && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      "{act.comment}"
+                    </p>
+                  )}
+                </div>
+
+                <div className="text-right">
+                  <p className="text-md text-gray-600 font-bold">Status</p>
+                  <p
+                    className={`text-md font-medium ${
+                      STAGE_COLORS[act.approved?.toUpperCase()] ||
+                      "border-gray-300"
+                    }`}
+                  >
+                    {act.approved || "N/A"}
+                  </p>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <p className="text-center text-gray-500">
+              No approval data available.
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* Files */}
       {nfa.files && nfa.files.length > 0 && (
@@ -393,7 +405,7 @@ export default function SeeNfa() {
                     navigate(`/reRe-initiate/${nfa.id}`);
                   }}
                 >
-                  Cancel
+                  Edit
                 </AlertDialogCancel>
                 <AlertDialogAction onClick={() => handleReinitiate(nfa)}>
                   Re-initiate
@@ -415,18 +427,24 @@ export default function SeeNfa() {
 
         {/* If you can act (recommend or approve), show approve/reject with a comment box */}
         {canAct && (
-          <div className="flex  w-full flex-col items-end gap-2">
+          <div className="flex  w-full flex-col  gap-2">
+            <label className="flex justify-start">Any Comments</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Enter your comment"
               className="mt-1 block w-full px-3 py-1.5 text-sm text-gray-800 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
-            <div className="flex gap-2">
-              <Button onClick={() => handleAction(true)}>Approve</Button>
-              <Button variant="destructive" onClick={() => handleAction(false)}>
-                Reject
-              </Button>
+            <div className="flex  w-full flex-col items-end  gap-2">
+              <div className="flex gap-2">
+                <Button onClick={() => handleAction(true)}>Approve</Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleAction(false)}
+                >
+                  Reject
+                </Button>
+              </div>
             </div>
           </div>
         )}

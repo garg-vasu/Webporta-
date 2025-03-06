@@ -17,13 +17,18 @@ import {
   HelpCircle,
   Plus,
   Filter,
+  CodeSquare,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+const BASE_URL = "https://nfaapp.dockerserver.online";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { request } from "http";
 
 export default function SeachNfa() {
   const { startLoading, setStartLoading } = useState(false);
+  const [userId, setUserId] = useState();
   const { requests, loading, fetchRequests } = useRequests();
   const [sortOption, setSortOption] = useState("Date Created");
   const [showAdvancedSearchModal, setShowAdvancedSearchModal] = useState(false);
@@ -59,6 +64,7 @@ export default function SeachNfa() {
   };
 
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
   const DEPARTMENTS = [
     "Civil",
     "Finance",
@@ -74,6 +80,21 @@ export default function SeachNfa() {
   ];
   const PRIORITIES = ["High", "Medium", "Low"];
 
+  const fetchUserDetails = async () => {
+    setStartLoading(true);
+    try {
+      const response = await axios.get(`${BASE_URL}/users/me`, {
+        headers: { Authorization: token },
+      });
+      if (response.data?.id) {
+        setUserId(response.data.id);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    } finally {
+      setStartLoading(false);
+    }
+  };
   //   filtering
   const applyAdvancedSearchFilters = (list) => {
     let filtered = [...list];
@@ -110,6 +131,7 @@ export default function SeachNfa() {
   };
 
   useEffect(() => {
+    fetchUserDetails();
     fetchRequests();
   }, []);
 
@@ -138,7 +160,19 @@ export default function SeachNfa() {
   };
 
   // Final list
+  console.log("from search section ");
+
+  console.log(requests);
+  const filteredRequests = requests.filter(
+    (request) => request.initiator_id === userId
+  );
+  console.log("hwllo below");
+  console.log(filteredRequests);
+
   const finalRequests = sortRequests(applyAdvancedSearchFilters(requests));
+  // const finalRequests = sortRequests(
+  //   applyAdvancedSearchFilters(requests)
+  // ).filter((request) => request.initiator_id === userId);
 
   // list render segment
   const getStatusIcon = (status) => {

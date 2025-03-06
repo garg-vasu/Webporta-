@@ -154,14 +154,14 @@ export default function ApprovalScreen() {
           </button>
         ))}
       </div>
-      <div>
+      <div className="pb-8">
         {finalRequests.length === 0 ? (
           <p>No {approvalTab} approvals found.</p>
         ) : (
           finalRequests.map((r) => {
             const { Icon, color } = getStatusIcon(r.status);
             return (
-              <div className="mt-4 mb-8 pb-12 gap-2">
+              <div className="mt-4 gap-2">
                 <div
                   key={r.id}
                   className={`border-l-4 cursor-pointer py-2 px-4 rounded-lg shadow-lg bg-white ${

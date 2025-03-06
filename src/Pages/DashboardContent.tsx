@@ -180,16 +180,19 @@ export default function DashboardContent() {
                   ))}
                 </div>
               )} */}
-              <div className="flex ">
+              <div className="flex">
                 <p className="text-sm text-gray-600 text-start">
-                  <p className="font-bold">
+                  <span className="font-bold">
                     Approvers:
-                    {/* ({item.approval_hierarchy.length}) */}
-                  </p>
-                  {req.approval_hierarchy
-                    ?.map((ap) => ap.name)
-                    .filter(Boolean)
-                    .join(", ") || "NA"}
+                    {/* ({req.approval_hierarchy.length}) */}
+                  </span>{" "}
+                  {req.approval_hierarchy?.length > 1
+                    ? req.approval_hierarchy
+                        .slice(1) // Exclude the first approver (index 0)
+                        .map((ap) => ap?.name)
+                        .filter(Boolean)
+                        .join(", ")
+                    : "NA"}
                 </p>
               </div>
             </motion.div>
