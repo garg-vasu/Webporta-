@@ -112,15 +112,19 @@ export default function SideBar() {
           </Link>
         </div> */}
         <div className="flex h-16 rounded-lg items-center justify-center  bg-[#FFFAFA]">
-          <img
-            onClick={() => {
-              navigate("/");
-            }}
-            src={bg}
-            className={`transition-all duration-300 ${
+          <div
+            className={`transition-all duration-300  ${
               isCollapsed ? "w-8 h-8" : "w-20 h-12"
             }`}
-          />
+          >
+            <img
+              onClick={() => {
+                navigate("/");
+              }}
+              className="w-full h-full max-w-full max-h-full"
+              src={bg}
+            />
+          </div>
         </div>
 
         {/* NAVIGATION MENU */}

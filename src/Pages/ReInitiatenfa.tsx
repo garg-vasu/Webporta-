@@ -27,7 +27,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useRequests } from "@/Providers/RequestsContext";
-import { request } from "http";
 
 export type UserSchema = {
   name: string;
@@ -59,10 +58,10 @@ const BASE_URL = "https://nfaapp.dockerserver.online";
 // Type for form fields after Zod validation
 type FormFields = z.infer<typeof nfaSchema>;
 
-export default function RaiseNFA() {
+export default function Reinitiatenfa() {
   // Check if we are in "edit" mode vs. "create" mode
   const { id } = useParams();
-  const isEditMode = Boolean(id);
+
   const { requests, loading, fetchRequests } = useRequests();
 
   const [isOtherSelected, setIsOtherSelected] = useState(false);
@@ -262,11 +261,11 @@ export default function RaiseNFA() {
 
   // If editing, fetch existing NFA after we’ve fetched AllUsers (so we can set the supervisor name)
   useEffect(() => {
-    if (isEditMode && userId && AllUsers.length > 0) {
+    if (userId && AllUsers.length > 0) {
       fetchExistingNfa(id as string);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditMode, id, AllUsers]);
+  }, [id, AllUsers]);
 
   // Utility to handle selection of an approver in the approach field array
   const handleSelectChange = (index: number, value: string) => {
@@ -344,33 +343,28 @@ export default function RaiseNFA() {
         formData.append("files", file);
       });
 
-      const url = isEditMode
-        ? `${BASE_URL}/requests/${id}/edit`
-        : `${BASE_URL}/requests/`;
+      const url = `${BASE_URL}/requests/reinitiate?request_id=${id}`;
+      formData.append("edit_details", "true");
 
-      const response = await axios({
-        method: "POST",
-        url,
-        data: formData,
+      const response = await axios.post(url, formData, {
         headers: {
           Authorization: token,
           "Content-Type": "multipart/form-data",
         },
       });
 
-      if (response.status === 200) {
-        alert(
-          isEditMode ? "NFA updated successfully" : "NFA raised successfully"
-        );
+      if (response.status === 201) {
+        alert("NFA Reinitaite successfully");
         navigate("/");
       } else {
         throw new Error("Unexpected response format");
       }
     } catch (error) {
       console.error(
-        "NFA submission failed:",
+        "NFA reinitiate failed:",
         error.response?.data || error.message
       );
+      navigate("/");
       alert(
         `Failed to submit NFA: ${
           error.response?.data?.message || error.message
@@ -391,7 +385,7 @@ export default function RaiseNFA() {
   return (
     <div className="pb-4">
       <h1 className="text-lg font-semibold text-gray-800 mb-4">
-        {isEditMode ? "Edit NFA" : "Raise NFA"}
+        Reinitiate NFA
       </h1>
       <hr className="border-gray-300 mb-4" />
 
@@ -732,7 +726,7 @@ export default function RaiseNFA() {
             )}
             {open && (
               <div className="absolute top-full left-0 w-full z-50 bg-white shadow-lg border rounded-md mt-1">
-                <Command className="w-full h-[200px]">
+                <Command>
                   <CommandInput placeholder="Search supervisor..." />
                   <CommandList>
                     <CommandEmpty>No user found.</CommandEmpty>
@@ -896,10 +890,8 @@ export default function RaiseNFA() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...
               </>
-            ) : isEditMode ? (
-              "Update NFA"
             ) : (
-              "Raise NFA"
+              "Reinitiate"
             )}
           </Button>
         </div>

@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-const BASE_URL = "https://blueinvent.dockerserver.online"; // Replace with actual API URL
+const BASE_URL = "https://nfaapp.dockerserver.online"; // Replace with actual API URL
 // Interfaces
 export interface User {
   name: "string";

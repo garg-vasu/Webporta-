@@ -12,6 +12,7 @@ import ApprovalScreen from "./Pages/ApprovalScreen";
 
 import { UserProvider } from "./Providers/UserProvider";
 import PrivateRoute from "./PrivateRoute";
+import Reinitiatenfa from "./Pages/ReInitiatenfa";
 
 const routes: RouteObject[] = [
   {
@@ -46,6 +47,10 @@ const routes: RouteObject[] = [
       {
         path: "editnfa/:id",
         element: <RaiseNFA />,
+      },
+      {
+        path: "reRe-initiate/:id",
+        element: <Reinitiatenfa />,
       },
       // View NFA details
       {

@@ -4,7 +4,25 @@ import { CheckCircle, XCircle, Clock, HelpCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://blueinvent.dockerserver.online";
+const BASE_URL = "https://nfaapp.dockerserver.online";
+const STATUS_COLORS = {
+  PENDING: "border-yellow-500 bg-yellow-50",
+  APPROVED: "border-green-500 bg-green-50",
+  REJECTED: "border-red-500 bg-red-50",
+  NEW: "border-orange-400 bg-orange-50",
+};
+
+const STAGE_COLORS = {
+  PENDING: "text-yellow-600",
+  APPROVED: "text-green-600",
+  REJECTED: "text-red-600",
+  NEW: "text-orange-600",
+};
+const PIOR_COLORS = {
+  HIGH: "bg-red-600",
+  MEDIUM: "bg-yellow-600",
+  LOW: "bg-green-600",
+};
 
 export default function ApprovalScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -119,14 +137,16 @@ export default function ApprovalScreen() {
   }
 
   return (
-    <div>
+    <div className="">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Approvals</h2>
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-2  mb-2">
         {["All", "Pending", "Approved", "Rejected"].map((tab) => (
           <button
             key={tab}
-            className={`px-4 py-2 rounded ${
-              approvalTab === tab ? "bg-blue-500 text-white" : "bg-gray-200"
+            className={`px-6 py-1 rounded-lg font-medium shadow-md transition-all duration-300 ${
+              approvalTab === tab
+                ? "bg-blue-400 text-white"
+                : "bg-gray-200 hover:bg-gray-200"
             }`}
             onClick={() => setApprovalTab(tab)}
           >
@@ -141,36 +161,39 @@ export default function ApprovalScreen() {
           finalRequests.map((r) => {
             const { Icon, color } = getStatusIcon(r.status);
             return (
-              <div
-                key={r.id}
-                className="border p-4 mb-2 rounded cursor-pointer"
-                onClick={() => navigate(`/nfa/${r.id}`)}
-              >
-                <div className="flex justify-between ">
-                  <p className="text-lg font-bold capitalize">
+              <div className="mt-4 mb-8 pb-12 gap-2">
+                <div
+                  key={r.id}
+                  className={`border-l-4 cursor-pointer py-2 px-4 rounded-lg shadow-lg bg-white ${
+                    STATUS_COLORS[r.status?.toUpperCase()] || "border-gray-300"
+                  }`}
+                  onClick={() => navigate(`/nfa/${r.id}`)}
+                >
+                  <div className="flex justify-between ">
+                    <p className="text-lg font-bold capitalize">
+                      {r.subject?.length > 35
+                        ? r.subject.substring(0, 35) + "..."
+                        : r.subject || "NA"}
+                    </p>
+                    <div className="flex gap-2 items-center justify-center">
+                      <h2 className="text-md font-semibold">
+                        {r.status.toUpperCase()}
+                      </h2>
+                      <Icon size={22} color={color} />
+                    </div>
+                  </div>
+                  <p className="text-sm">
                     {r.subject?.length > 35
                       ? r.subject.substring(0, 35) + "..."
                       : r.subject || "NA"}
                   </p>
-                  <div className="flex gap-2 items-center justify-center">
-                    <h2 className="text-md font-semibold">
-                      {r.status.toUpperCase()}
-                    </h2>
-                    <Icon size={22} color={color} />
-                  </div>
-                </div>
-                <p className="text-sm">
-                  {r.subject?.length > 35
-                    ? r.subject.substring(0, 35) + "..."
-                    : r.subject || "NA"}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Initiator: {r.initiator_name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Supervisor: {r.supervisor_name}
-                </p>
-                {/* {approvalTab === "Pending" && canUserAct(r) && (
+                  <p className="text-sm text-gray-500">
+                    Initiator: {r.initiator_name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Supervisor: {r.supervisor_name}
+                  </p>
+                  {/* {approvalTab === "Pending" && canUserAct(r) && (
                   <div className="flex gap-2 mt-2">
                     <button
                       className="px-4 py-2 bg-green-500 text-white rounded"
@@ -194,6 +217,7 @@ export default function ApprovalScreen() {
                     </button>
                   </div>
                 )} */}
+                </div>
               </div>
             );
           })

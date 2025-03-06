@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const STATUS_COLORS = {
   PENDING: "border-yellow-500 bg-yellow-50",
@@ -35,18 +36,42 @@ const formatDate = (dateStr) => {
   });
 };
 
+const BASE_URL = "https://nfaapp.dockerserver.online";
+
 export default function DashboardContent() {
   const { requests, loading, fetchRequests } = useRequests();
   const [filter, setFilter] = useState("ALL");
   const navigate = useNavigate();
+  const [userId, setUserId] = useState();
+  const [newLoading, setNewLoading] = useState(false);
+  const token = localStorage.getItem("token");
+
+  const fetchUserDetails = async () => {
+    setNewLoading(true);
+    try {
+      const response = await axios.get(`${BASE_URL}/users/me`, {
+        headers: { Authorization: token },
+      });
+      if (response.data?.id) {
+        setUserId(response.data.id);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    } finally {
+      setNewLoading(false);
+    }
+  };
 
   useEffect(() => {
+    fetchUserDetails();
+    console.log(userId);
     fetchRequests();
   }, []);
 
   const getFilteredRequests = () => {
-    if (filter === "ALL") return requests;
-    return requests.filter((req) =>
+    let userRequests = requests.filter((req) => req.initiator_id === userId);
+    if (filter === "ALL") return userRequests;
+    return userRequests.filter((req) =>
       ["NEW", "IN_PROGRESS", "PENDING"].includes(req.status?.toUpperCase())
         ? filter === "PENDING"
         : req.status?.toUpperCase() === filter
@@ -89,7 +114,7 @@ export default function DashboardContent() {
       {loading ? (
         <p className="text-center text-gray-500">Loading...</p>
       ) : (
-        <div className="mt-4 mb-8 pb-12 grid gap-6">
+        <div className="mt-4 mb-8 pb-12 grid gap-2">
           {getFilteredRequests().map((req) => (
             <motion.div
               key={req.id}

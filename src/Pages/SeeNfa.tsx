@@ -2,6 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import axios from "axios";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequests } from "@/Providers/RequestsContext"; // or your context location
@@ -18,12 +29,12 @@ const STAGE_COLORS_border = {
   REJECTED: "border-red-600",
   NEW: "border-orange-600",
 };
-const BASE_URL = "https://blueinvent.dockerserver.online";
+const BASE_URL = "https://nfaapp.dockerserver.online";
 
 export default function SeeNfa() {
   const { noteid } = useParams<{ noteid: string }>();
   const navigate = useNavigate();
-  const token = localStorage.getItem("token") || "";
+  const token = localStorage.getItem("token");
   const [userId, setUserId] = useState(0);
   const [pageLoading, setPageLoading] = useState(false);
   const [comment, setComment] = useState("");
@@ -75,23 +86,58 @@ export default function SeeNfa() {
     }
   }
 
-  const handleOpenPDF = async () => {
+  // const handleOpenPDF = async () => {
+  //   if (!nfa?.status?.toUpperCase().includes("APPROVED")) {
+  //     alert("Request not approved yet");
+  //     return;
+  //   }
+  //   try {
+  //     const response = await axios.get(`${BASE_URL}/requests/${noteid}/pdf`, {
+  //       headers: { Authorization: token },
+  //       responseType: "blob",
+  //     });
+  //     const blob = new Blob([response.data], { type: "application/pdf" });
+  //     const url = window.URL.createObjectURL(blob);
+  //     window.open(url, "_blank");
+  //     window.URL.revokeObjectURL(url);
+  //   } catch (error) {
+  //     console.error("Open PDF error:", error);
+  //     alert("Unable to open PDF");
+  //   }
+  // };
+
+  const handleDownloadPDF = async (nfa) => {
     if (!nfa?.status?.toUpperCase().includes("APPROVED")) {
       alert("Request not approved yet");
       return;
     }
+
     try {
-      const response = await axios.get(`${BASE_URL}/requests/${noteid}/pdf`, {
-        headers: { Authorization: token },
+      console.log(nfa);
+      console.log(token);
+      const response = await axios.get(`${BASE_URL}/requests/${nfa.id}/pdf`, {
+        headers: { Authorization: token.replace("bearer ", "Bearer ") },
+        // headers: { Authorization: token },
         responseType: "blob",
       });
+
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-      window.open(url, "_blank");
+
+      // Create a link element and trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `nfa_${nfa.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+      alert("PDF downloaded successfully");
     } catch (error) {
-      console.error("Open PDF error:", error);
-      alert("Unable to open PDF");
+      console.error("Download PDF error:", error);
+      alert("Unable to download PDF");
     }
   };
 
@@ -141,9 +187,42 @@ export default function SeeNfa() {
     navigate(`/editnfa/${noteid}`);
   };
 
-  const handleReinitiate = () => {
-    // e.g., same approach:
-    navigate(`/editnfa/${noteid}`);
+  const handleReinitiate = async (nfa) => {
+    try {
+      setPageLoading(true);
+      const formData = new FormData();
+      formData.append("edit_details", "false");
+      formData.append("initiator_id", nfa.initiator_id.toString());
+      formData.append("supervisor_id", nfa.supervisor_id.toString());
+      formData.append("subject", nfa.subject);
+      formData.append("description", nfa.description);
+      formData.append("area", nfa.area);
+      formData.append("project", nfa.project);
+      formData.append("tower", nfa.tower);
+      formData.append("department", nfa.department);
+      formData.append("references", nfa.references || "");
+
+      const response = await axios.post(
+        `${BASE_URL}/requests/reinitiate?request_id=${nfa.id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: token,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        alert("Request Reinitiated");
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("Reinitiate error:", err);
+      alert("Request failed, try again ");
+    } finally {
+      setPageLoading(false);
+    }
   };
 
   const handleWithdraw = async () => {
@@ -291,12 +370,37 @@ export default function SeeNfa() {
       {/* Action Buttons */}
       <div className="mt-4 flex flex-wrap gap-4 items-center justify-end">
         {nfa.status?.toUpperCase().includes("APPROVED") && (
-          <Button onClick={handleOpenPDF}>Download PDF</Button>
+          <Button onClick={() => handleDownloadPDF(nfa)}>Download PDF</Button>
         )}
 
         {/* If REJECTED, user can "Re-initiate" - goes to edit screen */}
         {nfa.status === "REJECTED" && userId === nfa.initiator_id && (
-          <Button onClick={handleReinitiate}>Re-initiate Request</Button>
+          // <Button onClick={handleReinitiate}>Re-initiate Request</Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline">Re-initiate Request</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action will Re-initiate the Request
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  onClick={() => {
+                    navigate(`/reRe-initiate/${nfa.id}`);
+                  }}
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleReinitiate(nfa)}>
+                  Re-initiate
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
 
         {/* If it's still NEW, the initiator can Edit or Withdraw */}
@@ -316,7 +420,7 @@ export default function SeeNfa() {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Enter your comment"
-              className="border border-gray-300 rounded p-1 text-sm w-60"
+              className="mt-1 block w-full px-3 py-1.5 text-sm text-gray-800 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
             <div className="flex gap-2">
               <Button onClick={() => handleAction(true)}>Approve</Button>

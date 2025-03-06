@@ -5,7 +5,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChartNoAxesColumnDecreasing, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-const BASE_URL = "https://blueinvent.dockerserver.online";
+const BASE_URL = "https://nfaapp.dockerserver.online";
 
 const schema = z.object({
   username: z.string().min(1, "Invalid email address"),
@@ -38,7 +38,7 @@ export default function LoginForm() {
 
     try {
       const response = await axios.post(
-        "https://blueinvent.dockerserver.online/login",
+        "https://nfaapp.dockerserver.online/login",
         formattedData,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },

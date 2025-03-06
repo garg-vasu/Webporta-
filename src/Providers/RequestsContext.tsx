@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
-const BASE_URL = "https://blueinvent.dockerserver.online"; // Replace with actual API URL
+const BASE_URL = "https://nfaapp.dockerserver.online"; // Replace with actual API URL
 
 export type ApprovalHierarchy = {
   role: string;
