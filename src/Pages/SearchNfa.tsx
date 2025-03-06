@@ -27,7 +27,7 @@ import axios from "axios";
 import { request } from "http";
 
 export default function SeachNfa() {
-  const { startLoading, setStartLoading } = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
   const [userId, setUserId] = useState();
   const { requests, loading, fetchRequests } = useRequests();
   const [sortOption, setSortOption] = useState("Date Created");
@@ -161,6 +161,7 @@ export default function SeachNfa() {
 
   // Final list
   console.log("all request");
+  console.log(userId);
   console.log(requests);
   const filteredRequests = requests.filter(
     (request) => request.initiator_id === userId

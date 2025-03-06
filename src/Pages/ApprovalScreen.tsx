@@ -91,6 +91,7 @@ export default function ApprovalScreen() {
   };
 
   const finalRequests = sortRequestsDesc(filteredByTab(myApprovalRequests));
+  console.log(finalRequests);
 
   const canUserAct = (r) =>
     (r.status.toUpperCase() === "NEW" && r.supervisor_id === Number(userId)) ||
