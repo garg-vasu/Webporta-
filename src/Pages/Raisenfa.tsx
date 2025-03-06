@@ -405,25 +405,6 @@ export default function RaiseNFA() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="mb-4 mt-4 pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Description */}
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-700">
-              Description <span className="text-red-500">*</span>
-            </label>
-            <input
-              required
-              {...register("description")}
-              type="text"
-              placeholder="Enter description"
-              className="mt-1 block w-full px-3 py-1.5 text-sm text-gray-800 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-            {errors.description && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
-
           {/* References */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
@@ -679,6 +660,23 @@ export default function RaiseNFA() {
             </div>
           )}
 
+          <div className="flex flex-col">
+            <label className="block text-sm font-medium text-gray-700">
+              Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              required
+              {...register("description")}
+              placeholder="Enter description"
+              className="mt-1 block w-full px-3 py-1.5 text-sm text-gray-800 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+
           {/* Priority */}
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700">
@@ -785,7 +783,7 @@ export default function RaiseNFA() {
                 <div className="flex w-full flex-col relative">
                   <div className="flex items-center justify-between w-full gap-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      Advisor {index + 1}
+                      Supervisor{index + 1}
                     </label>
                     {/* Button to remove an approver entry (only show if more than one) */}
                     {fields.length > 1 && (

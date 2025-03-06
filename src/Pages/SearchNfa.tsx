@@ -160,13 +160,12 @@ export default function SeachNfa() {
   };
 
   // Final list
-  console.log("from search section ");
-
+  console.log("all request");
   console.log(requests);
   const filteredRequests = requests.filter(
     (request) => request.initiator_id === userId
   );
-  console.log("hwllo below");
+  console.log("after filter");
   console.log(filteredRequests);
 
   const finalRequests = sortRequests(applyAdvancedSearchFilters(requests));

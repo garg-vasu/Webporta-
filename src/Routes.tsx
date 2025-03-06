@@ -22,15 +22,11 @@ const routes: RouteObject[] = [
   {
     path: "/",
     element: (
-      <PrivateRoute>
-        {/* <UserProvider> -- If you wish to wrap in your own UserProvider */}
-        <UserProvider>
-          <RequestsProvider>
-            <MainLayout />
-          </RequestsProvider>
-        </UserProvider>
-        {/* </UserProvider> */}
-      </PrivateRoute>
+      <UserProvider>
+        <RequestsProvider>
+          <MainLayout />
+        </RequestsProvider>
+      </UserProvider>
     ),
     children: [
       // Dashboard is shown by default at "/"
