@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useRequests } from "@/Providers/RequestsContext";
 import { request } from "http";
+import { error } from "console";
 
 export type UserSchema = {
   name: string;
@@ -80,14 +81,14 @@ export default function RaiseNFA() {
   const [isOtherTower, setIsOtherTower] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  // Mappings for towers inside known projects
+  // prettier-ignore
   const towersMapping: Record<string, string[]> = {
-    "Garden Isles": ["Tower A", "Tower B"],
-    "Casa Isles": ["Tower A", "Tower B", "Tower C", "Tower D"],
-    "Krescent Homes": ["Tower A", "Tower B", "Tower C", "Tower D"],
-    Kosmos: ["Tower A", "Tower B", "Tower C", "Tower D"],
-    Kube: ["Tower A", "Tower B", "Tower C", "Tower D"],
-  };
+  "Garden Isles": ["Tower A", "Tower B"],
+  "Casa Isles": ["Tower A", "Tower B", "Tower C", "Tower D"],
+  "Krescent Homes": ["Tower A", "Tower B", "Tower C", "Tower D"],
+  "Kosmos": ["Tower A", "Tower B", "Tower C", "Tower D"],
+  "Kube": ["Tower A", "Tower B", "Tower C", "Tower D"],
+};
 
   const navigate = useNavigate();
   const token: string = localStorage.getItem("token") || "";
@@ -323,6 +324,8 @@ export default function RaiseNFA() {
     }
   };
 
+  console.log(errors);
+
   // When user submits the form
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
@@ -358,7 +361,7 @@ export default function RaiseNFA() {
         },
       });
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         alert(
           isEditMode ? "NFA updated successfully" : "NFA raised successfully"
         );
